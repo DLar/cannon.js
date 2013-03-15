@@ -2,9 +2,8 @@
  * @author mrdoob / http://mrdoob.com/
  * @author schteppe / https://github.com/schteppe
  */
- var PointerLockControls = function ( camera, cannonBody ) {
+ var PointerLockControls = function ( camera, playerBody ) {
 
-    var eyeYPos = 2; // eyes are 2 meters above the ground
     var velocityFactor = 0.2;
     var jumpVelocity = 20;
     var scope = this;
@@ -13,7 +12,7 @@
     pitchObject.add( camera );
 
     var yawObject = new THREE.Object3D();
-    yawObject.position.y = 2;
+    yawObject.position.y = 1;
     yawObject.add( pitchObject );
 
     var quat = new THREE.Quaternion();
@@ -25,11 +24,11 @@
 
     var canJump = false;
 
-    cannonBody.addEventListener("collide",function(e){
+    playerBody.addEventListener("collide",function(e){
         canJump = true;
     });
 
-    var velocity = cannonBody.velocity;
+    var velocity = playerBody.velocity;
 
     var PI_2 = Math.PI / 2;
 
@@ -154,6 +153,6 @@
         velocity.x += inputVelocity.x;
         velocity.z += inputVelocity.z;
 
-        cannonBody.position.copy(yawObject.position);
+		playerBody.position.copy(yawObject.position);
     };
 };
