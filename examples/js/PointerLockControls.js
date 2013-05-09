@@ -116,11 +116,6 @@
         return yawObject;
     };
 
-    this.getDirection = function(targetVec){
-        targetVec.set(0,0,-1);
-        quat.multiplyVector3(targetVec);
-    }
-
     // Moves the camera to the Cannon.js object position and adds velocity to the object if the run key is down
     var inputVelocity = new THREE.Vector3();
     this.update = function ( delta ) {
