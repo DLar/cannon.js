@@ -1,51 +1,52 @@
-/*global CANNON:true */
+module.exports = Mat3;
+
+var Vec3 = require('./Vec3');
 
 /**
- * @class CANNON.Mat3
- * @brief A 3x3 matrix.
+ * A 3x3 matrix.
+ * @class Mat3
+ * @constructor
  * @param array elements Array of nine elements. Optional.
  * @author schteppe / http://github.com/schteppe
  */
-CANNON.Mat3 = function(elements){
+function Mat3(elements){
     /**
-    * @property Array elements
-    * @memberof CANNON.Mat3
-    * @brief A vector of length 9, containing all matrix elements
-    * The values in the array are stored in the following order:
-    * | 0 1 2 |
-    * | 3 4 5 |
-    * | 6 7 8 |
-    * 
-    */
+     * A vector of length 9, containing all matrix elements
+     * @property {Array} elements
+     */
     if(elements){
         this.elements = elements;
     } else {
         this.elements = [0,0,0,0,0,0,0,0,0];
     }
-};
+}
 
 /**
+ * Sets the matrix to identity
  * @method identity
- * @memberof CANNON.Mat3
- * @brief Sets the matrix to identity
  * @todo Should perhaps be renamed to setIdentity() to be more clear.
  * @todo Create another function that immediately creates an identity matrix eg. eye()
  */
-CANNON.Mat3.prototype.identity = function(){
-    this.elements[0] = 1;
-    this.elements[1] = 0;
-    this.elements[2] = 0;
+Mat3.prototype.identity = function(){
+    var e = this.elements;
+    e[0] = 1;
+    e[1] = 0;
+    e[2] = 0;
 
-    this.elements[3] = 0;
-    this.elements[4] = 1;
-    this.elements[5] = 0;
+    e[3] = 0;
+    e[4] = 1;
+    e[5] = 0;
 
-    this.elements[6] = 0;
-    this.elements[7] = 0;
-    this.elements[8] = 1;
+    e[6] = 0;
+    e[7] = 0;
+    e[8] = 1;
 };
 
-CANNON.Mat3.prototype.setZero = function(){
+/**
+ * Set all elements to zero
+ * @method setZero
+ */
+Mat3.prototype.setZero = function(){
     var e = this.elements;
     e[0] = 0;
     e[1] = 0;
@@ -59,25 +60,38 @@ CANNON.Mat3.prototype.setZero = function(){
 };
 
 /**
+ * Sets the matrix diagonal elements from a Vec3
  * @method setTrace
- * @memberof CANNON.Mat3
- * @brief Sets the matrix diagonal elements from a Vec3
+ * @param {Vec3} vec3
  */
-CANNON.Mat3.prototype.setTrace = function(vec3){
-    this.elements[0] = vec3.x;
-    this.elements[4] = vec3.y;
-    this.elements[8] = vec3.z;
+Mat3.prototype.setTrace = function(vec3){
+    var e = this.elements;
+    e[0] = vec3.x;
+    e[4] = vec3.y;
+    e[8] = vec3.z;
 };
 
 /**
- * @method vmult
- * @memberof CANNON.Mat3
- * @brief Matrix-Vector multiplication
- * @param CANNON.Vec3 v The vector to multiply with
- * @param CANNON.Vec3 target Optional, target to save the result in.
+ * Gets the matrix diagonal elements
+ * @method getTrace
+ * @return {Vec3}
  */
-CANNON.Mat3.prototype.vmult = function(v,target){
-    target = target || new CANNON.Vec3();
+Mat3.prototype.getTrace = function(target){
+    var target = target || new Vec3();
+    var e = this.elements;
+    target.x = e[0];
+    target.y = e[4];
+    target.z = e[8];
+};
+
+/**
+ * Matrix-Vector multiplication
+ * @method vmult
+ * @param {Vec3} v The vector to multiply with
+ * @param {Vec3} target Optional, target to save the result in.
+ */
+Mat3.prototype.vmult = function(v,target){
+    target = target || new Vec3();
 
     var e = this.elements,
         x = v.x,
@@ -91,55 +105,72 @@ CANNON.Mat3.prototype.vmult = function(v,target){
 };
 
 /**
+ * Matrix-scalar multiplication
  * @method smult
- * @memberof CANNON.Mat3
- * @brief Matrix-scalar multiplication
- * @param float s
+ * @param {Number} s
  */
-CANNON.Mat3.prototype.smult = function(s){
+Mat3.prototype.smult = function(s){
     for(var i=0; i<this.elements.length; i++){
         this.elements[i] *= s;
     }
 };
 
 /**
+ * Matrix multiplication
  * @method mmult
- * @memberof CANNON.Mat3
- * @brief Matrix multiplication
- * @param CANNON.Mat3 m Matrix to multiply with from left side.
- * @return CANNON.Mat3 The result.
+ * @param {Mat3} m Matrix to multiply with from left side.
+ * @return {Mat3} The result.
  */
-CANNON.Mat3.prototype.mmult = function(m){
-    var r = new CANNON.Mat3();
+Mat3.prototype.mmult = function(m,target){
+    var r = target || new Mat3();
     for(var i=0; i<3; i++){
-    for(var j=0; j<3; j++){
-        var sum = 0.0;
-        for(var k=0; k<3; k++){
-        sum += m.elements[i+k*3] * this.elements[k+j*3];
+        for(var j=0; j<3; j++){
+            var sum = 0.0;
+            for(var k=0; k<3; k++){
+                sum += m.elements[i+k*3] * this.elements[k+j*3];
+            }
+            r.elements[i+j*3] = sum;
         }
-        r.elements[i+j*3] = sum;
-    }
     }
     return r;
 };
 
 /**
- * @method solve
- * @memberof CANNON.Mat3
- * @brief Solve Ax=b
- * @param CANNON.Vec3 b The right hand side
- * @param CANNON.Vec3 target Optional. Target vector to save in.
- * @return CANNON.Vec3 The solution x
+ * Scale each column of the matrix
+ * @method scale
+ * @param {Vec3} v
+ * @return {Mat3} The result.
  */
-CANNON.Mat3.prototype.solve = function(b,target){
+Mat3.prototype.scale = function(v,target){
+    target = target || new Mat3();
+    var e = this.elements,
+        t = target.elements;
+    for(var i=0; i!==3; i++){
+        t[3*i + 0] = v.x * e[3*i + 0];
+        t[3*i + 1] = v.y * e[3*i + 1];
+        t[3*i + 2] = v.z * e[3*i + 2];
+    }
+    return target;
+};
 
-    target = target || new CANNON.Vec3();
+/**
+ * Solve Ax=b
+ * @method solve
+ * @param {Vec3} b The right hand side
+ * @param {Vec3} target Optional. Target vector to save in.
+ * @return {Vec3} The solution x
+ * @todo should reuse arrays
+ */
+Mat3.prototype.solve = function(b,target){
+    target = target || new Vec3();
 
     // Construct equations
     var nr = 3; // num rows
     var nc = 4; // num cols
     var eqns = [];
-    for(var i=0; i<nr*nc; i++) eqns.push(0);
+    for(var i=0; i<nr*nc; i++){
+        eqns.push(0);
+    }
     var i,j;
     for(i=0; i<3; i++){
         for(j=0; j<3; j++){
@@ -154,32 +185,32 @@ CANNON.Mat3.prototype.solve = function(b,target){
     var n = 3, k = n, np;
     var kp = 4; // num rows
     var p, els;
-do {
-    i = k - n;
-    if (eqns[i+nc*i] === 0) {
-        // the pivot is null, swap lines
-      for (j = i + 1; j < k; j++) {
-        if (eqns[i+nc*j] !== 0) {
-          np = kp;
-          do {  // do ligne( i ) = ligne( i ) + ligne( k )
-            p = kp - np;
-            eqns[p+nc*i] += eqns[p+nc*j]; 
-          } while (--np);
-          break;
+    do {
+        i = k - n;
+        if (eqns[i+nc*i] === 0) {
+            // the pivot is null, swap lines
+            for (j = i + 1; j < k; j++) {
+                if (eqns[i+nc*j] !== 0) {
+                    np = kp;
+                    do {  // do ligne( i ) = ligne( i ) + ligne( k )
+                        p = kp - np;
+                        eqns[p+nc*i] += eqns[p+nc*j];
+                    } while (--np);
+                    break;
+                }
+            }
         }
-      }
-    }
-    if (eqns[i+nc*i] !== 0) {
-      for (j = i + 1; j < k; j++) {
-        var multiplier = eqns[i+nc*j] / eqns[i+nc*i];
-        np = kp;
-        do {  // do ligne( k ) = ligne( k ) - multiplier * ligne( i )
-          p = kp - np;
-          eqns[p+nc*j] = p <= i ? 0 : eqns[p+nc*j] - eqns[p+nc*i] * multiplier ;
-        } while (--np);
-      }
-    }
-  } while (--n);
+        if (eqns[i+nc*i] !== 0) {
+            for (j = i + 1; j < k; j++) {
+                var multiplier = eqns[i+nc*j] / eqns[i+nc*i];
+                np = kp;
+                do {  // do ligne( k ) = ligne( k ) - multiplier * ligne( i )
+                    p = kp - np;
+                    eqns[p+nc*j] = p <= i ? 0 : eqns[p+nc*j] - eqns[p+nc*i] * multiplier ;
+                } while (--np);
+            }
+        }
+    } while (--n);
 
     // Get the solution
     target.z = eqns[2*nc+3] / eqns[2*nc+2];
@@ -194,45 +225,41 @@ do {
 };
 
 /**
+ * Get an element in the matrix by index. Index starts at 0, not 1!!!
  * @method e
- * @memberof CANNON.Mat3
- * @brief Get an element in the matrix by index. Index starts at 0, not 1!!!
- * @param int row 
- * @param int column
- * @param float value Optional. If provided, the matrix element will be set to this value.
- * @return float
+ * @param {Number} row
+ * @param {Number} column
+ * @param {Number} value Optional. If provided, the matrix element will be set to this value.
+ * @return {Number}
  */
-CANNON.Mat3.prototype.e = function( row , column ,value){
+Mat3.prototype.e = function( row , column ,value){
     if(value===undefined){
-    return this.elements[column+3*row];
+        return this.elements[column+3*row];
     } else {
-    // Set value
-    this.elements[column+3*row] = value;
+        // Set value
+        this.elements[column+3*row] = value;
     }
 };
 
 /**
+ * Copy another matrix into this matrix object.
  * @method copy
- * @memberof CANNON.Mat3
- * @brief Copy the matrix
- * @param CANNON.Mat3 target Optional. Target to save the copy in.
- * @return CANNON.Mat3
+ * @param {Mat3} source
+ * @return {Mat3} this
  */
-CANNON.Mat3.prototype.copy = function(target){
-    target = target || new CANNON.Mat3();
-    for(var i=0; i<this.elements.length; i++){
-        target.elements[i] = this.elements[i];
+Mat3.prototype.copy = function(source){
+    for(var i=0; i < source.elements.length; i++){
+        this.elements[i] = source.elements[i];
     }
-    return target;
+    return this;
 };
 
 /**
+ * Returns a string representation of the matrix.
  * @method toString
- * @memberof CANNON.Mat3
- * @brief Returns a string representation of the matrix.
  * @return string
  */
-CANNON.Mat3.prototype.toString = function(){
+Mat3.prototype.toString = function(){
     var r = "";
     var sep = ",";
     for(var i=0; i<9; i++){
@@ -242,21 +269,22 @@ CANNON.Mat3.prototype.toString = function(){
 };
 
 /**
+ * reverse the matrix
  * @method reverse
- * @memberof CANNON.Mat3
- * @brief reverse the matrix
- * @param CANNON.Mat3 target Optional. Target matrix to save in.
- * @return CANNON.Mat3 The solution x
+ * @param {Mat3} target Optional. Target matrix to save in.
+ * @return {Mat3} The solution x
  */
-CANNON.Mat3.prototype.reverse = function(target){
+Mat3.prototype.reverse = function(target){
 
-    target = target || new CANNON.Mat3();
+    target = target || new Mat3();
 
-  // Construct equations
+    // Construct equations
     var nr = 3; // num rows
     var nc = 6; // num cols
     var eqns = [];
-    for(var i=0; i<nr*nc; i++) eqns.push(0);
+    for(var i=0; i<nr*nc; i++){
+        eqns.push(0);
+    }
     var i,j;
     for(i=0; i<3; i++){
         for(j=0; j<3; j++){
@@ -272,74 +300,123 @@ CANNON.Mat3.prototype.reverse = function(target){
     eqns[5+6*0] = 0;
     eqns[5+6*1] = 0;
     eqns[5+6*2] = 1;
-  
-  // Compute right upper triangular version of the matrix - Gauss elimination
+
+    // Compute right upper triangular version of the matrix - Gauss elimination
     var n = 3, k = n, np;
     var kp = nc; // num rows
     var p;
     do {
-    i = k - n;
-    if (eqns[i+nc*i] === 0) {
-        // the pivot is null, swap lines
-        for (j = i + 1; j < k; j++) {
-        if (eqns[i+nc*j] !== 0) {
-            np = kp;
-            do { // do line( i ) = line( i ) + line( k )
-            p = kp - np;
-            eqns[p+nc*i] += eqns[p+nc*j];
-            } while (--np);
-            break;
+        i = k - n;
+        if (eqns[i+nc*i] === 0) {
+            // the pivot is null, swap lines
+            for (j = i + 1; j < k; j++) {
+                if (eqns[i+nc*j] !== 0) {
+                    np = kp;
+                    do { // do line( i ) = line( i ) + line( k )
+                        p = kp - np;
+                        eqns[p+nc*i] += eqns[p+nc*j];
+                    } while (--np);
+                    break;
+                }
+            }
         }
+        if (eqns[i+nc*i] !== 0) {
+            for (j = i + 1; j < k; j++) {
+                var multiplier = eqns[i+nc*j] / eqns[i+nc*i];
+                np = kp;
+                do { // do line( k ) = line( k ) - multiplier * line( i )
+                    p = kp - np;
+                    eqns[p+nc*j] = p <= i ? 0 : eqns[p+nc*j] - eqns[p+nc*i] * multiplier ;
+                } while (--np);
+            }
         }
-    }
-    if (eqns[i+nc*i] !== 0) {
-        for (j = i + 1; j < k; j++) {
-        var multiplier = eqns[i+nc*j] / eqns[i+nc*i];
-        np = kp;
-        do { // do line( k ) = line( k ) - multiplier * line( i )
-            p = kp - np;
-            eqns[p+nc*j] = p <= i ? 0 : eqns[p+nc*j] - eqns[p+nc*i] * multiplier ;
-        } while (--np);
-        }
-    }
     } while (--n);
-  
-  // eliminate the upper left triangle of the matrix
-  i = 2
+
+    // eliminate the upper left triangle of the matrix
+    i = 2;
     do {
-    j = i-1;
-    do {
-        var multiplier = eqns[i+nc*j] / eqns[i+nc*i];
-        np = nc;
-        do { 
-        p = nc - np;
-        eqns[p+nc*j] =  eqns[p+nc*j] - eqns[p+nc*i] * multiplier ;
-        } while (--np);
-    } while (j--);
+        j = i-1;
+        do {
+            var multiplier = eqns[i+nc*j] / eqns[i+nc*i];
+            np = nc;
+            do {
+                p = nc - np;
+                eqns[p+nc*j] =  eqns[p+nc*j] - eqns[p+nc*i] * multiplier ;
+            } while (--np);
+        } while (j--);
     } while (--i);
-  
-  // operations on the diagonal
+
+    // operations on the diagonal
     i = 2;
     do {
-    var multiplier = 1 / eqns[i+nc*i];
-    np = nc;
-    do { 
-        p = nc - np;
-        eqns[p+nc*i] = eqns[p+nc*i] * multiplier ;
-    } while (--np);
+        var multiplier = 1 / eqns[i+nc*i];
+        np = nc;
+        do {
+            p = nc - np;
+            eqns[p+nc*i] = eqns[p+nc*i] * multiplier ;
+        } while (--np);
     } while (i--);
-  
-  
+
     i = 2;
     do {
-    j = 2;
-    do {
-        p = eqns[nr+j+nc*i];
-        if( isNaN( p ) || p ===Infinity )
-        throw "Could not reverse! A=["+this.toString()+"]";
-        target.e( i , j , p );
-    } while (j--);
+        j = 2;
+        do {
+            p = eqns[nr+j+nc*i];
+            if( isNaN( p ) || p ===Infinity ){
+                throw "Could not reverse! A=["+this.toString()+"]";
+            }
+            target.e( i , j , p );
+        } while (j--);
     } while (i--);
-    
+
+    return target;
+};
+
+/**
+ * Set the matrix from a quaterion
+ * @method setRotationFromQuaternion
+ * @param {Quaternion} q
+ */
+Mat3.prototype.setRotationFromQuaternion = function( q ) {
+    var x = q.x, y = q.y, z = q.z, w = q.w,
+        x2 = x + x, y2 = y + y, z2 = z + z,
+        xx = x * x2, xy = x * y2, xz = x * z2,
+        yy = y * y2, yz = y * z2, zz = z * z2,
+        wx = w * x2, wy = w * y2, wz = w * z2,
+        e = this.elements;
+
+    e[3*0 + 0] = 1 - ( yy + zz );
+    e[3*0 + 1] = xy - wz;
+    e[3*0 + 2] = xz + wy;
+
+    e[3*1 + 0] = xy + wz;
+    e[3*1 + 1] = 1 - ( xx + zz );
+    e[3*1 + 2] = yz - wx;
+
+    e[3*2 + 0] = xz - wy;
+    e[3*2 + 1] = yz + wx;
+    e[3*2 + 2] = 1 - ( xx + yy );
+
+    return this;
+};
+
+/**
+ * Transpose the matrix
+ * @method transpose
+ * @param  {Mat3} target Where to store the result.
+ * @return {Mat3} The target Mat3, or a new Mat3 if target was omitted.
+ */
+Mat3.prototype.transpose = function( target ) {
+    target = target || new Mat3();
+
+    var Mt = target.elements,
+        M = this.elements;
+
+    for(var i=0; i!==3; i++){
+        for(var j=0; j!==3; j++){
+            Mt[3*i + j] = M[3*j + i];
+        }
+    }
+
     return target;
 };

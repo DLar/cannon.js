@@ -25,8 +25,21 @@
 
     var canJump = false;
 
+    var contactNormal = new CANNON.Vec3(); // Normal in the contact, pointing *out* of whatever the player touched
+    var upAxis = new CANNON.Vec3(0,1,0);
     cannonBody.addEventListener("collide",function(e){
-        canJump = true;
+        var contact = e.contact;
+
+        // contact.bi and contact.bj are the colliding bodies, and contact.ni is the collision normal.
+        // We do not yet know which one is which! Let's check.
+        if(contact.bi.id == cannonBody.id)  // bi is the player body, flip the contact normal
+            contact.ni.negate(contactNormal);
+        else
+            contactNormal.copy(contact.ni); // bi is something else. Keep the normal as it is
+
+        // If contactNormal.dot(upAxis) is between 0 and 1, we know that the contact normal is somewhat in the up direction.
+        if(contactNormal.dot(upAxis) > 0.5) // Use a "good" threshold value between 0 and 1 here!
+            canJump = true;
     });
 
     var velocity = cannonBody.velocity;
@@ -124,6 +137,7 @@
 
     // Moves the camera to the Cannon.js object position and adds velocity to the object if the run key is down
     var inputVelocity = new THREE.Vector3();
+    var euler = new THREE.Euler();
     this.update = function ( delta ) {
 
         if ( scope.enabled === false ) return;
@@ -147,13 +161,17 @@
         }
 
         // Convert velocity to world coordinates
-        quat.setFromEuler({x:pitchObject.rotation.x, y:yawObject.rotation.y, z:0},"XYZ");
-        quat.multiplyVector3(inputVelocity);
+        euler.x = pitchObject.rotation.x;
+        euler.y = yawObject.rotation.y;
+        euler.order = "XYZ";
+        quat.setFromEuler(euler);
+        inputVelocity.applyQuaternion(quat);
+        //quat.multiplyVector3(inputVelocity);
 
         // Add to the object
         velocity.x += inputVelocity.x;
         velocity.z += inputVelocity.z;
 
-        cannonBody.position.copy(yawObject.position);
+        yawObject.position.copy(cannonBody.position);
     };
 };

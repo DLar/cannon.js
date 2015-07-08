@@ -1,10 +1,12 @@
-var cannon = require("../build/cannon");
+var Vec3 =     require("../src/math/Vec3")
+,   Mat3 =     require("../src/math/Mat3")
+,   Quaternion = require("../src/math/Quaternion")
 
-exports.vec3 = {
-    "creation" : function(test) {
+module.exports = {
+    creation : function(test) {
         test.expect(3);
 
-        var v = new cannon.Vec3(1, 2, 3);
+        var v = new Vec3(1, 2, 3);
         test.equal(v.x, 1, "Creating a vec3 should set the first parameter to the x value");
         test.equal(v.y, 2, "Creating a vec3 should set the second parameter to the y value");
         test.equal(v.z, 3, "Creating a vec3 should set the third parameter to the z value");
@@ -12,11 +14,11 @@ exports.vec3 = {
         test.done();
     },
 
-    "cross" : function(test) {
+    cross : function(test) {
         test.expect(3);
 
-        var v = new cannon.Vec3(1, 2, 3);
-        var u = new cannon.Vec3(4, 5, 6);
+        var v = new Vec3(1, 2, 3);
+        var u = new Vec3(4, 5, 6);
         v = v.cross(u);
 
         test.equal(v.x, -3, "Calculating cross product x");
@@ -26,17 +28,17 @@ exports.vec3 = {
         test.done();
     },
 
-    "dot" : function(test) {
+    dot : function(test) {
         test.expect(2);
 
-        var v = new cannon.Vec3(1, 2, 3);
-        var u = new cannon.Vec3(4, 5, 6);
+        var v = new Vec3(1, 2, 3);
+        var u = new Vec3(4, 5, 6);
         var dot = v.dot(u);
 
         test.equal(dot, 4 + 10 + 18, "Calculating dot product x");
 
-        v = new cannon.Vec3(3, 2, 1);
-        u = new cannon.Vec3(4, 5, 6);
+        v = new Vec3(3, 2, 1);
+        u = new Vec3(4, 5, 6);
         dot = v.dot(u);
 
         test.equal(dot, 12 + 10 + 6, "Calculating dot product x");
@@ -44,10 +46,10 @@ exports.vec3 = {
         test.done();
     },
 
-    "set" : function(test) {
+    set : function(test) {
         test.expect(3);
 
-        var v = new cannon.Vec3(1, 2, 3);
+        var v = new Vec3(1, 2, 3);
         v.set(4, 5, 6);
 
         test.equal(v.x, 4, "Setting values from x, y, z");
@@ -57,11 +59,11 @@ exports.vec3 = {
         test.done();
     },
 
-    "vadd" : function(test) {
+    vadd : function(test) {
         test.expect(3);
 
-        var v = new cannon.Vec3(1, 2, 3);
-        var u = new cannon.Vec3(4, 5, 6);
+        var v = new Vec3(1, 2, 3);
+        var u = new Vec3(4, 5, 6);
         v = v.vadd(u);
 
         test.equal(v.x, 5, "Adding a vector (x)");
@@ -69,5 +71,15 @@ exports.vec3 = {
         test.equal(v.z, 9, "Adding a vector (z)");
 
         test.done();
-    }
+    },
+
+    isAntiparallelTo : function(test){
+        test.ok(new Vec3(1,0,0).isAntiparallelTo(new Vec3(-1,0,0)));
+        test.done();
+    },
+
+    almostEquals : function(test){
+        test.ok(new Vec3(1,0,0).almostEquals(new Vec3(1,0,0)));
+        test.done();
+    },
 };

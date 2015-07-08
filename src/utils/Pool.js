@@ -1,26 +1,75 @@
-/*global CANNON:true */
+module.exports = Pool;
 
 /**
- * @class CANNON.ObjectPool
- * @brief For pooling objects that can be reused.
+ * For pooling objects that can be reused.
+ * @class Pool
+ * @constructor
  */
-CANNON.ObjectPool = function(){
+function Pool(){
+    /**
+     * The pooled objects
+     * @property {Array} objects
+     */
     this.objects = [];
+
+    /**
+     * Constructor of the objects
+     * @property {mixed} type
+     */
     this.type = Object;
-};
+}
 
-CANNON.ObjectPool.prototype.release = function(){
-    for(var i in arguments)
+/**
+ * Release an object after use
+ * @method release
+ * @param {Object} obj
+ */
+Pool.prototype.release = function(){
+    var Nargs = arguments.length;
+    for(var i=0; i!==Nargs; i++){
         this.objects.push(arguments[i]);
+    }
+    return this;
 };
 
-CANNON.ObjectPool.prototype.get = function(){
-    if(this.objects.length===0)
+/**
+ * Get an object
+ * @method get
+ * @return {mixed}
+ */
+Pool.prototype.get = function(){
+    if(this.objects.length===0){
         return this.constructObject();
-    else
+    } else {
         return this.objects.pop();
+    }
 };
 
-CANNON.ObjectPool.prototype.constructObject = function(){
-    throw new Error("constructObject() not implemented in this ObjectPool subclass yet!");
+/**
+ * Construct an object. Should be implmented in each subclass.
+ * @method constructObject
+ * @return {mixed}
+ */
+Pool.prototype.constructObject = function(){
+    throw new Error("constructObject() not implemented in this Pool subclass yet!");
 };
+
+/**
+ * @method resize
+ * @param {number} size
+ * @return {Pool} Self, for chaining
+ */
+Pool.prototype.resize = function (size) {
+    var objects = this.objects;
+
+    while (objects.length > size) {
+        objects.pop();
+    }
+
+    while (objects.length < size) {
+        objects.push(this.constructObject());
+    }
+
+    return this;
+};
+

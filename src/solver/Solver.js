@@ -1,32 +1,59 @@
-/*global CANNON:true */
+module.exports = Solver;
 
 /**
- * @class CANNON.Solver
- * @brief Constraint equation solver base class.
+ * Constraint equation solver base class.
+ * @class Solver
+ * @constructor
  * @author schteppe / https://github.com/schteppe
  */
-CANNON.Solver = function(){
-    // All equations to be solved
+function Solver(){
+    /**
+     * All equations to be solved
+     * @property {Array} equations
+     */
     this.equations = [];
-};
+}
 
-// Should be implemented in subclasses!
-CANNON.Solver.prototype.solve = function(dt,world){
+/**
+ * Should be implemented in subclasses!
+ * @method solve
+ * @param  {Number} dt
+ * @param  {World} world
+ */
+Solver.prototype.solve = function(dt,world){
     // Should return the number of iterations done!
     return 0;
 };
 
-CANNON.Solver.prototype.addEquation = function(eq){
-    this.equations.push(eq);
+/**
+ * Add an equation
+ * @method addEquation
+ * @param {Equation} eq
+ */
+Solver.prototype.addEquation = function(eq){
+    if (eq.enabled) {
+        this.equations.push(eq);
+    }
 };
 
-CANNON.Solver.prototype.removeEquation = function(eq){
-    var i = this.equations.indexOf(eq);
-    if(i!=-1)
-        this.equations.splice(i,1);
+/**
+ * Remove an equation
+ * @method removeEquation
+ * @param {Equation} eq
+ */
+Solver.prototype.removeEquation = function(eq){
+    var eqs = this.equations;
+    var i = eqs.indexOf(eq);
+    if(i !== -1){
+        eqs.splice(i,1);
+    }
 };
 
-CANNON.Solver.prototype.removeAllEquations = function(){
-    this.equations = [];
+/**
+ * Add all equations
+ * @method removeAllEquations
+ */
+Solver.prototype.removeAllEquations = function(){
+    this.equations.length = 0;
 };
 

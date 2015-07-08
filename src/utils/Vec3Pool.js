@@ -1,14 +1,24 @@
-/*global CANNON:true */
+module.exports = Vec3Pool;
+
+var Vec3 = require('../math/Vec3');
+var Pool = require('./Pool');
 
 /**
- * @class CANNON.Vec3Pool
+ * @class Vec3Pool
+ * @constructor
+ * @extends Pool
  */
-CANNON.Vec3Pool = function(){
-    CANNON.ObjectPool.call(this);
-    this.type = CANNON.Vec3;
-};
-CANNON.Vec3Pool.prototype = new CANNON.ObjectPool();
+function Vec3Pool(){
+    Pool.call(this);
+    this.type = Vec3;
+}
+Vec3Pool.prototype = new Pool();
 
-CANNON.Vec3Pool.prototype.constructObject = function(){
-    return new CANNON.Vec3();
+/**
+ * Construct a vector
+ * @method constructObject
+ * @return {Vec3}
+ */
+Vec3Pool.prototype.constructObject = function(){
+    return new Vec3();
 };

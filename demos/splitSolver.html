@@ -3,13 +3,15 @@
   <head>
     <title>cannon.js - splitsolver demo</title>
     <meta charset="utf-8">
-    <link rel="stylesheet" href="style.css" type="text/css"/>
+    <link rel="stylesheet" href="css/style.css" type="text/css"/>
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
   </head>
   <body>
     <script src="../build/cannon.js"></script>
     <script src="../build/cannon.demo.js"></script>
     <script src="../libs/dat.gui.js"></script>
     <script src="../libs/Three.js"></script>
+    <script src="../libs/TrackballControls.js"></script>
     <script src="../libs/Detector.js"></script>
     <script src="../libs/Stats.js"></script>
     <script src="../libs/smoothie.js"></script>
@@ -21,7 +23,7 @@
      * the total error is small, in other words: when the system is solved "good enough".
      * When simulating larger systems with more equations, the error will add up,
      * and the solver will need more iterations/work to reach the "good enough" level.
-     * 
+     *
      * The SplitSolver splits the system into independent parts, and runs a subsolver
      * on each part. The total error in a subsystem will many times be smaller than in
      * the large system, so we can many times cut down on the total number of iterations we do.
@@ -35,7 +37,7 @@
 
       var demo = new CANNON.Demo();
       var size = 0.5;
-      
+
       var shape = new CANNON.Sphere(size);
       var shape = new CANNON.Box(new CANNON.Vec3(size*0.5,size*0.5,size*0.5));
       demo.addScene("with split",function(){
@@ -44,11 +46,11 @@
       demo.addScene("without split",function(){
           createScene(demo,shape,false);
         });
-      
+
       demo.start();
-      
+
       function createScene(demo,shape,split){
-      
+
         // Create world
         var world = demo.getWorld();
         world.gravity.set(0,0,-10);
@@ -57,40 +59,43 @@
         var solver = new CANNON.GSSolver();
         solver.iterations = 50;
         world.defaultContactMaterial.contactEquationStiffness = 1e7;
-        world.defaultContactMaterial.contactEquationRegularizationTime = 5;
+        world.defaultContactMaterial.contactEquationRelaxation = 5;
         solver.tolerance = 0.0001;
         if(split)
             world.solver = new CANNON.SplitSolver(solver);
         else
             world.solver = solver;
-      
+
         // ground plane
         var groundShape = new CANNON.Plane();
-        var groundBody = new CANNON.RigidBody(0,groundShape);
-        world.add(groundBody);
+        var groundBody = new CANNON.Body({ mass: 0 });
+        groundBody.addShape(groundShape);
+        world.addBody(groundBody);
         demo.addVisual(groundBody);
-      
+
         // Shape on plane
         var N = 5;
         for(var i=0; i<N; i++){
             for(var j=0; j<N; j++){
-                var shapeBody = new CANNON.RigidBody(1,shape);
+                var shapeBody = new CANNON.Body({ mass: 1 });
+                shapeBody.addShape(shape);
                 shapeBody.position.set( (i-N*0.5)*size*2*1.1,
                                         (j-N*0.5)*size*2*1.1,
                                         size*1.05);
-                world.add(shapeBody);
+                world.addBody(shapeBody);
                 demo.addVisual(shapeBody);
             }
         }
 
 
-        var shapeBody = new CANNON.RigidBody(1,shape);
+        var shapeBody = new CANNON.Body({ mass: 1 });
+        shapeBody.addShape(shape);
         shapeBody.position.set( size,size,
                                 size*5);
-        world.add(shapeBody);
+        world.addBody(shapeBody);
         demo.addVisual(shapeBody);
       }
-            
+
     </script>
   </body>
 </html>
